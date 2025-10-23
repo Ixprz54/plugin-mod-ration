@@ -1,0 +1,40 @@
+name: CuboriaModerationPlugin
+version: 1.0.0
+main: fr.cuboria.moderation.ModerationPlugin
+api-version: 1.21
+author: EmyXtrm
+description: Plugin de modération complet pour Cuboria
+
+commands:
+  staffco:
+    description: Active le mode staff
+    aliases: [staff]
+    permission: cuboria.staff
+  staffdeco:
+    description: Désactive le mode staff
+    permission: cuboria.staff
+  sanction:
+    description: Ouvre le menu de sanction
+    usage: /sanction <joueur>
+    permission: cuboria.staff.sanction
+  report:
+    description: Signaler un joueur
+    usage: /report <joueur> <raison>
+    permission: cuboria.report
+
+permissions:
+  cuboria.staff:
+    description: Accès aux commandes staff
+    default: op
+  cuboria.staff.sanction:
+    description: Accès au système de sanctions
+    default: op
+  cuboria.report:
+    description: Permet de signaler un joueur
+    default: true
+  cuboria.staff.freeze:
+    description: Permet de freeze un joueur
+    default: op
+  cuboria.staff.vanish:
+    description: Permet de se rendre invisible
+    default: op

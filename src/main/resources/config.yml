@@ -1,0 +1,96 @@
+# Configuration du Plugin de Modération Cuboria
+# Développé par EmyXtrm
+
+# Configuration de la base de données
+database:
+  enabled: true
+  host: "localhost"
+  port: 3306
+  database: "cuboria"
+  username: "root"
+  password: "password"
+  pool-size: 10
+
+# Configuration Discord
+discord:
+  # Webhook pour les logs d'actions staff
+  webhook-logs: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+  # Webhook pour le changelog
+  webhook-changelog: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+  # Message de convocation
+  summon-message: |
+    &c&l[!] CONVOCATION STAFF [!]
+    &e
+    &eVous êtes convoqué par un membre du staff.
+    &eVous êtes actuellement freeze et ne pouvez pas bouger.
+    &e
+    &c&lATTENTION: &cSi vous vous déconnectez, vous serez banni définitivement
+    &cet devrez vous rendre sur le Discord pour contester: &9discord.gg/cuboria
+
+# Configuration du mode Staff
+staff-mode:
+  auto-vanish: true
+  auto-god-mode: true
+  save-inventory: true
+
+# Messages
+messages:
+  prefix: "&8[&6Cuboria&8] &r"
+  staff-mode-enabled: "&aMode staff activé! Inventaire sauvegardé."
+  staff-mode-disabled: "&cMode staff désactivé! Inventaire restauré."
+  player-not-found: "&cJoueur introuvable."
+  no-permission: "&cVous n'avez pas la permission."
+  player-frozen: "&e{player} &aa été freeze."
+  player-unfrozen: "&e{player} &aa été unfreeze."
+  you-are-frozen: "&c&lVous êtes freeze! Impossible de bouger."
+  sanction-applied: "&aSanction appliquée à &e{player}&a: &f{type}"
+  report-sent: "&aVotre signalement a été envoyé au staff."
+  report-received: "&e[REPORT] &f{reporter} &esignale &f{target}&e: &f{reason}"
+
+# Configuration des items Staff
+staff-items:
+  vanish:
+    slot: 0
+    material: ENDER_EYE
+    name: "&6&lVanish"
+    lore:
+      - "&7Clic pour activer/désactiver"
+      - "&7le mode invisible"
+      - ""
+      - "&eÉtat: &a{status}"
+  freeze:
+    slot: 1
+    material: PACKED_ICE
+    name: "&b&lFreeze"
+    lore:
+      - "&7Clic droit sur un joueur"
+      - "&7pour le freeze/unfreeze"
+  teleport:
+    slot: 2
+    material: ENDER_PEARL
+    name: "&d&lTéléportation"
+    lore:
+      - "&7Clic droit sur un joueur"
+      - "&7pour vous téléporter à lui"
+  inspect:
+    slot: 3
+    material: BOOK
+    name: "&e&lInspection"
+    lore:
+      - "&7Clic droit sur un joueur"
+      - "&7pour voir son inventaire"
+  reports:
+    slot: 4
+    material: WRITABLE_BOOK
+    name: "&c&lRapports"
+    lore:
+      - "&7Voir les rapports récents"
+      - ""
+      - "&e{count} &7rapport(s) en attente"
+  summon:
+    slot: 8
+    material: BELL
+    name: "&6&lConvocation"
+    lore:
+      - "&7Utiliser dans le menu sanction"
+      - "&7pour convoquer un joueur"

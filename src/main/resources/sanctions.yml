@@ -1,0 +1,105 @@
+# Configuration des sanctions et templates
+# Développé par EmyXtrm pour Cuboria
+
+# Templates de sanctions
+sanctions:
+  warn:
+    name: "&e&lAvertissement"
+    icon: PAPER
+    templates:
+      - reason: "Langage inapproprié"
+        duration: 0
+        message: "&cVous avez été averti pour langage inapproprié."
+      - reason: "Non-respect des règles"
+        duration: 0
+        message: "&cVous avez été averti pour non-respect des règles."
+      - reason: "Comportement toxique"
+        duration: 0
+        message: "&cVous avez été averti pour comportement toxique."
+      - reason: "Spam"
+        duration: 0
+        message: "&cVous avez été averti pour spam."
+      - reason: "Publicité"
+        duration: 0
+        message: "&cVous avez été averti pour publicité."
+
+  mute:
+    name: "&6&lMute"
+    icon: IRON_BARS
+    templates:
+      - reason: "Spam dans le chat"
+        duration: 3600
+        duration-text: "1 heure"
+        message: "&cVous avez été mute pendant 1 heure pour spam."
+      - reason: "Insultes"
+        duration: 7200
+        duration-text: "2 heures"
+        message: "&cVous avez été mute pendant 2 heures pour insultes."
+      - reason: "Publicité"
+        duration: 86400
+        duration-text: "1 jour"
+        message: "&cVous avez été mute pendant 1 jour pour publicité."
+      - reason: "Flood"
+        duration: 1800
+        duration-text: "30 minutes"
+        message: "&cVous avez été mute pendant 30 minutes pour flood."
+      - reason: "Mute permanent"
+        duration: -1
+        duration-text: "Permanent"
+        message: "&cVous avez été mute définitivement."
+
+  kick:
+    name: "&c&lKick"
+    icon: IRON_DOOR
+    templates:
+      - reason: "Comportement inapproprié"
+        message: "&cVous avez été expulsé du serveur pour comportement inapproprié."
+      - reason: "Non-respect des règles"
+        message: "&cVous avez été expulsé du serveur pour non-respect des règles."
+      - reason: "AFK en partie"
+        message: "&cVous avez été expulsé pour inactivité."
+      - reason: "Reconnexion nécessaire"
+        message: "&eVeuillez vous reconnecter."
+
+  ban:
+    name: "&4&lBan"
+    icon: BARRIER
+    templates:
+      - reason: "Triche/Cheat"
+        duration: -1
+        duration-text: "Permanent"
+        message: "&4Vous avez été banni définitivement pour triche."
+      - reason: "Comportement grave"
+        duration: 2592000
+        duration-text: "30 jours"
+        message: "&cVous avez été banni pendant 30 jours pour comportement grave."
+      - reason: "Multi-compte"
+        duration: -1
+        duration-text: "Permanent"
+        message: "&4Vous avez été banni définitivement pour multi-compte."
+      - reason: "Insultes graves/Harcèlement"
+        duration: 604800
+        duration-text: "7 jours"
+        message: "&cVous avez été banni pendant 7 jours."
+      - reason: "Fraude/Arnaque"
+        duration: -1
+        duration-text: "Permanent"
+        message: "&4Vous avez été banni définitivement pour fraude."
+      - reason: "Fuite de convocation"
+        duration: -1
+        duration-text: "Permanent"
+        message: "&4Vous avez été banni pour fuite de convocation. Rendez-vous sur discord.gg/cuboria"
+
+# Configuration GUI
+gui:
+  main-menu:
+    title: "&8&lSanctions - {player}"
+    size: 27
+    fill-empty: true
+    fill-material: GRAY_STAINED_GLASS_PANE
+
+  template-menu:
+    title: "&8&l{type} - Raisons"
+    size: 54
+    fill-empty: true
+    fill-material: GRAY_STAINED_GLASS_PANE
