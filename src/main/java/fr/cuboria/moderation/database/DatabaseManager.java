@@ -37,6 +37,9 @@ public class DatabaseManager {
         config.setPassword(plugin.getConfig().getString("database.password"));
         config.setMaximumPoolSize(plugin.getConfig().getInt("database.pool-size", 10));
 
+        // Explicitly set the driver class name to use the relocated MariaDB driver
+        config.setDriverClassName("fr.cuboria.moderation.shaded.mariadb.jdbc.Driver");
+
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
