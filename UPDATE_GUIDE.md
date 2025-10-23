@@ -1,23 +1,32 @@
-# Guide de Mise à Jour - Résolution de l'erreur "zip file closed"
+# Guide de Mise à Jour - Résolution des erreurs de compilation et base de données
 
-## Problème Résolu
+## Problèmes Résolus
 
+### 1. Erreur "zip file closed" ✅ CORRIGÉ
 L'erreur `java.lang.IllegalStateException: zip file closed` qui empêchait le plugin de se charger a été corrigée.
 
-### Cause du problème
-
-Le **maven-shade-plugin** n'était pas correctement configuré, ce qui causait :
+**Cause**: Le **maven-shade-plugin** n'était pas correctement configuré, ce qui causait :
 - Des problèmes de classloader lors du chargement des classes
 - Des conflits avec les fichiers META-INF
 - Un JAR mal construit
 
-### Solution Appliquée
-
-Le `pom.xml` a été mis à jour avec :
+**Solution**: Le `pom.xml` a été mis à jour avec :
 1. ✅ `createDependencyReducedPom` désactivé
 2. ✅ Filtres pour exclure les fichiers de signature problématiques
 3. ✅ Transformers pour gérer correctement le MANIFEST
 4. ✅ Relocation complète de toutes les dépendances (HikariCP, MariaDB, Gson)
+
+### 2. Erreur "No suitable driver" ✅ CORRIGÉ
+L'erreur `java.sql.SQLException: No suitable driver` lors de l'initialisation de la base de données a été corrigée.
+
+**Cause**: Après la relocation des classes MariaDB par le maven-shade-plugin, le mécanisme Java ServiceLoader ne trouvait plus le driver JDBC.
+
+**Solution**: Ajout d'une configuration explicite du driver dans `DatabaseManager.java` :
+```java
+config.setDriverClassName("fr.cuboria.moderation.shaded.mariadb.jdbc.Driver");
+```
+
+Cela indique directement à HikariCP quelle classe driver utiliser, contournant le système SPI qui était cassé par la relocation.
 
 ## Instructions de Recompilation
 
@@ -58,14 +67,19 @@ Tu devrais voir :
 [INFO] Total time: XX.XXX s
 ```
 
-Le nouveau JAR sera dans : `target/CuboriaModerationPlugin-1.0.0.jar`
+⚠️ **IMPORTANT** : Maven génère DEUX fichiers JAR dans le dossier `target/` :
+- `CuboriaModerationPlugin-1.0.0.jar` (petit, ~10KB) ❌ **NE PAS UTILISER**
+- `CuboriaModerationPlugin-1.0.0-shaded.jar` (gros, ~5MB) ✅ **UTILISER CELUI-CI**
+
+**Tu DOIS utiliser le fichier `-shaded.jar` qui contient toutes les dépendances !**
 
 ### Étape 5 : Installer sur le serveur
 
 1. **Arrête le serveur**
 2. **Supprime l'ancien JAR** du dossier `plugins/`
-3. **Copie le nouveau JAR** dans `plugins/`
-4. **Démarre le serveur**
+3. **Copie le fichier `CuboriaModerationPlugin-1.0.0-shaded.jar`** (le gros fichier ~5MB) dans `plugins/`
+4. **Renomme-le en `CuboriaModerationPlugin.jar`** (optionnel mais recommandé)
+5. **Démarre le serveur**
 
 ### Étape 6 : Vérifier le chargement
 
