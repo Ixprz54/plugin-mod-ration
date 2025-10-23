@@ -10,8 +10,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class StaffModeManager {
 
@@ -166,14 +168,15 @@ public class StaffModeManager {
 
         // Item Rapports
         int pendingReports = plugin.getReportManager().getPendingReportsCount();
+        List<String> reportLore = config.getStaffItemLore("reports").stream()
+                .map(line -> line.replace("{count}", String.valueOf(pendingReports)))
+                .collect(Collectors.toList());
         player.getInventory().setItem(
                 config.getStaffItemSlot("reports"),
                 StaffItemBuilder.createStaffItem(
                         config.getStaffItemMaterial("reports"),
                         config.getStaffItemName("reports"),
-                        config.getStaffItemLore("reports").stream()
-                                .map(line -> line.replace("{count}", String.valueOf(pendingReports)))
-                                .toList(),
+                        reportLore,
                         "REPORTS"
                 )
         );
