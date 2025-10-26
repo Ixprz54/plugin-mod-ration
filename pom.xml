@@ -35,18 +35,11 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- MariaDB Driver -->
+        <!-- SQLite Driver -->
         <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>3.3.2</version>
-        </dependency>
-
-        <!-- HikariCP for connection pooling -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>5.1.0</version>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.45.0.0</version>
         </dependency>
 
         <!-- Gson for JSON -->
@@ -106,20 +99,12 @@
                             </transformers>
                             <relocations>
                                 <relocation>
-                                    <pattern>com.zaxxer.hikari</pattern>
-                                    <shadedPattern>fr.cuboria.moderation.shaded.hikari</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.mariadb.jdbc</pattern>
-                                    <shadedPattern>fr.cuboria.moderation.shaded.mariadb</shadedPattern>
+                                    <pattern>org.sqlite</pattern>
+                                    <shadedPattern>fr.cuboria.moderation.shaded.sqlite</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.gson</pattern>
                                     <shadedPattern>fr.cuboria.moderation.shaded.gson</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.slf4j</pattern>
-                                    <shadedPattern>fr.cuboria.moderation.shaded.slf4j</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

@@ -1,169 +1,275 @@
-# Cuboria Moderation Plugin
+# 🛡️ Plugin de Modération Cuboria
 
-Plugin de modération complet pour serveur Paper 1.21.4 développé pour Cuboria.
+> Plugin complet de modération pour serveurs Paper 1.21.4 avec interface graphique et intégration Discord
 
-**Développeur:** EmyXtrm
+[![Paper](https://img.shields.io/badge/Paper-1.21.4-blue.svg)](https://papermc.io/)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net/)
+[![SQLite](https://img.shields.io/badge/SQLite-Intégré-green.svg)](https://www.sqlite.org/)
 
-## Fonctionnalités
+**Développé par:** EmyXtrm pour Cuboria
 
-### Mode Staff (`/staffco`)
-- Activation du mode staff avec sauvegarde automatique de l'inventaire
-- Items spéciaux pour la modération
-- Mode vanish automatique
-- God mode activé
-- Restauration de l'inventaire avec `/staffdeco`
+---
 
-### Outils Staff
-- **Vanish** : Toggle mode invisible
-- **Freeze** : Immobilise un joueur (invulnérable + impossible d'attaquer)
-- **Téléportation** : Se téléporter à un joueur
-- **Inspection** : Voir l'inventaire et les stats d'un joueur
-- **Rapports** : Consulter les signalements en attente
+## ✨ Fonctionnalités Principales
 
-### Système de Sanctions (`/sanction <joueur>`)
-- Interface GUI intuitive
-- 4 types de sanctions :
-  - **Warn** : Avertissement
-  - **Kick** : Expulsion
-  - **Mute** : Réduire au silence
-  - **Ban** : Bannissement (temporaire ou permanent)
-- Templates de raisons personnalisables
-- Historique des sanctions en base de données
-- Notifications Discord via webhooks
+### 🎭 Mode Staff (`/staffco`)
+- ✅ Sauvegarde automatique de l'inventaire (SQLite)
+- 👻 Vanish automatique (invisible aux joueurs)
+- 🛡️ God Mode (invulnérable)
+- ✈️ Vol activé
+- 🧰 Inventaire d'outils staff personnalisés
 
-### Convocation Discord
-- Bouton spécial dans le menu de sanction
-- Freeze le joueur avec message de convocation
-- Ban automatique permanent si déconnexion pendant la convocation
-- Toggle freeze/unfreeze
+### ⚖️ Système de Sanctions (`/sanction`)
+- 📋 Interface GUI professionnelle
+- 🔧 4 types : Warn, Kick, Mute, Ban
+- 📝 Templates personnalisables (`sanctions.yml`)
+- 💾 Historique complet en base de données
 
-### Système de Rapports (`/report <joueur> <raison>`)
-- Permet aux joueurs de signaler d'autres joueurs
-- Cooldown de 60 secondes entre chaque report
-- Notifications au staff
-- Interface pour consulter et traiter les rapports
-- Logs Discord
+### 🔔 Système de Convocation
+- 🚨 Freeze + Message de convocation
+- ⛔ Ban automatique en cas de déconnexion
+- 🔄 Toggle Freeze/Unfreeze intégré
 
-### Intégration Discord
-- Webhook pour les logs d'actions staff
-- Webhook pour le changelog
-- Embeds colorés selon le type d'action
-- Informations détaillées sur chaque sanction
+### ❄️ Système de Freeze Avancé
+- 🧊 Immobilisation totale du joueur
+- 🛡️ Invulnérabilité complète
+- 🚫 Impossibilité d'attaquer ou interagir
+- 💬 Commandes limitées (/msg, /r, /reply)
 
-## Installation
+### 📢 Rapports (`/report`)
+- ⏱️ Cooldown anti-spam (1 minute)
+- 🔔 Notification temps réel au staff
+- 📊 GUI de consultation des rapports
+- ✅ Marquage des rapports traités
 
-1. Compilez le plugin avec Maven :
+### 🤖 Intégration Discord
+- 📨 Webhooks pour logs et changelog
+- 🎨 Embeds colorés selon l'action
+- 📝 Logs automatiques complets
+
+---
+
+## 📦 Installation Rapide
+
+1. **Compilez le plugin :**
    ```bash
    mvn clean package
    ```
 
-2. Le fichier JAR sera généré dans `target/CuboriaModerationPlugin-1.0.0.jar`
+2. **Récupérez** `target/CuboriaModerationPlugin-1.0.0.jar`
 
-3. Placez le JAR dans le dossier `plugins` de votre serveur Paper 1.21.4
+3. **Placez** dans `plugins/` de votre serveur Paper 1.21.4
 
-4. Configurez la base de données dans `config.yml`
+4. **Démarrez** le serveur
 
-5. Configurez les webhooks Discord dans `config.yml`
+5. **Configurez** `plugins/CuboriaModerationPlugin/config.yml`
 
-6. Redémarrez le serveur
+**Base de données SQLite créée automatiquement** - Aucune configuration externe requise ! 🎉
 
-## Configuration
+---
 
-### Database (config.yml)
+## ⚙️ Configuration Minimale
+
+### config.yml
 ```yaml
+# Configuration de la base de données (SQLite)
 database:
-  enabled: true
-  host: "localhost"
-  port: 3306
-  database: "cuboria"
-  username: "root"
-  password: "password"
-  pool-size: 10
-```
+  enabled: true  # SQLite - Aucune config requise !
+  # La base de données sera créée automatiquement :
+  # plugins/CuboriaModerationPlugin/cuboria_moderation.db
 
-### Discord Webhooks (config.yml)
-```yaml
+# Configuration Discord
 discord:
-  webhook-logs: "https://discord.com/api/webhooks/..."
-  webhook-changelog: "https://discord.com/api/webhooks/..."
+  webhook-logs: "https://discord.com/api/webhooks/VOTRE_WEBHOOK"
+  webhook-changelog: "https://discord.com/api/webhooks/VOTRE_WEBHOOK"
+
+# Configuration du mode Staff
+staff-mode:
+  auto-vanish: true
+  auto-god-mode: true
+  save-inventory: true
 ```
 
-### Templates de Sanctions (sanctions.yml)
-Les templates sont entièrement personnalisables. Vous pouvez ajouter, modifier ou supprimer des raisons de sanction.
-
-Exemple pour un warn :
+### sanctions.yml - Ajoutez vos propres templates !
 ```yaml
 sanctions:
-  warn:
+  ban:
+    name: "&4&lBan"
+    icon: BARRIER
     templates:
-      - reason: "Votre raison"
-        duration: 0
-        message: "&cMessage affiché au joueur"
+      - reason: "Triche/Cheat"
+        duration: -1  # -1 = permanent
+        duration-text: "Permanent"
+        message: "&4Banni définitivement pour triche."
+      - reason: "Comportement grave"
+        duration: 2592000  # 30 jours en secondes
+        duration-text: "30 jours"
+        message: "&cBanni 30 jours pour comportement grave."
 ```
 
-## Permissions
+---
 
-- `cuboria.staff` - Accès au mode staff
-- `cuboria.staff.sanction` - Accès aux sanctions
-- `cuboria.staff.freeze` - Permet de freeze un joueur
-- `cuboria.staff.vanish` - Permet de se rendre invisible
-- `cuboria.report` - Permet de signaler un joueur (accordée par défaut)
-
-## Commandes
+## 🎮 Commandes
 
 | Commande | Description | Permission |
 |----------|-------------|------------|
-| `/staffco` ou `/staff` | Active le mode staff | `cuboria.staff` |
-| `/staffdeco` | Désactive le mode staff | `cuboria.staff` |
-| `/sanction <joueur>` | Ouvre le menu de sanction | `cuboria.staff.sanction` |
-| `/report <joueur> <raison>` | Signale un joueur | `cuboria.report` |
+| `/staffco` `/staff` | Activer le mode staff | `cuboria.staff` |
+| `/staffdeco` | Désactiver le mode staff | `cuboria.staff` |
+| `/sanction <joueur>` | Ouvrir l'interface de sanctions | `cuboria.staff.sanction` |
+| `/report <joueur> <raison>` | Signaler un joueur | `cuboria.report` |
 
-## Architecture Technique
+---
 
-### Base de données
-Le plugin utilise MariaDB avec HikariCP pour le pooling de connexions.
+## 🔐 Permissions
 
-**Tables créées automatiquement :**
-- `cuboria_sanctions` - Historique des sanctions
-- `cuboria_reports` - Signalements des joueurs
-- `cuboria_staff_inventories` - Inventaires sauvegardés du staff
+```yaml
+cuboria.staff             # Accès mode staff (default: op)
+cuboria.staff.sanction    # Système de sanctions (default: op)
+cuboria.staff.freeze      # Freeze des joueurs (default: op)
+cuboria.staff.vanish      # Mode vanish (default: op)
+cuboria.report            # Signaler un joueur (default: true)
+```
+
+---
+
+## 🛠️ Compilation
+
+```bash
+mvn clean package
+```
+
+Le JAR compilé sera dans `target/CuboriaModerationPlugin-1.0.0.jar`
+
+**Prérequis :**
+- Maven 3.x
+- Java 21 (JDK)
+
+---
+
+## 📖 Documentation Complète
+
+Consultez [PLUGIN_GUIDE.md](PLUGIN_GUIDE.md) pour :
+- 📘 Guide d'utilisation détaillé
+- 🔧 Configuration avancée
+- 🎨 Personnalisation des items staff
+- 🗃️ Structure de la base de données SQLite
+- 🐛 Troubleshooting
+
+---
+
+## 🎯 Outils Staff (Mode Staff)
+
+| Slot | Outil | Action |
+|------|-------|--------|
+| 0 | 🔮 Vanish | Clic : Toggle invisibilité |
+| 1 | ❄️ Freeze | Clic droit joueur : Freeze/Unfreeze |
+| 2 | 🌀 Téléportation | Clic droit joueur : Se téléporter |
+| 3 | 📖 Inspection | Clic droit joueur : Voir inventaire + stats |
+| 4 | 📋 Rapports | Clic : Voir rapports en attente |
+
+---
+
+## 💡 Points Clés
+
+✅ **SQLite intégré** - Pas de serveur MariaDB/MySQL requis !
+✅ **GUI intuitive** - Interface graphique pour toutes les actions
+✅ **Ban automatique** - Fuite de convocation = ban permanent
+✅ **Freeze invulnérable** - Joueurs freeze complètement protégés
+✅ **Discord logs** - Toutes les actions loggées automatiquement
+✅ **Templates flexibles** - Ajoutez vos propres raisons de sanction
+
+---
+
+## 🗃️ Base de Données SQLite
+
+### Avantages
+- ✅ **Aucune configuration requise** - Fonctionne immédiatement
+- ✅ **Pas de serveur externe** - Base locale dans le dossier du plugin
+- ✅ **Léger et performant** - Parfait pour Minecraft
+- ✅ **Sauvegarde facile** - Copiez simplement le fichier `.db`
+
+### Tables créées automatiquement
+- **cuboria_sanctions** - Historique complet des sanctions
+- **cuboria_reports** - Signalements des joueurs
+- **cuboria_staff_inventories** - Sauvegarde inventaires staff
+
+### Localisation
+```
+plugins/CuboriaModerationPlugin/cuboria_moderation.db
+```
+
+---
+
+## 🏗️ Architecture Technique
 
 ### Structure du code
 ```
 fr.cuboria.moderation/
-├── commands/           # Commandes du plugin
-├── database/          # Gestion de la base de données
-├── gui/               # Interfaces utilisateur
-├── listeners/         # Événements Bukkit
-├── managers/          # Gestionnaires de fonctionnalités
-├── models/            # Modèles de données
-└── utils/             # Utilitaires
+├── commands/           # Commandes (/staffco, /sanction, /report)
+├── database/          # Gestionnaire SQLite + Serialization
+├── gui/               # Interfaces graphiques (Sanction, Reports, Inspect)
+├── listeners/         # Événements (Freeze, Staff Items, GUI clicks)
+├── managers/          # Gestionnaires (Staff, Freeze, Sanctions, Discord)
+├── models/            # Modèles de données (Sanction, Report)
+└── utils/             # Utilitaires (StaffItemBuilder)
 ```
 
-## Fonctionnalités avancées
+---
 
-### Freeze System
-- Le joueur freeze ne peut ni bouger ni interagir
-- Le joueur freeze est invulnérable
-- Le joueur freeze ne peut pas attaquer
-- Seules les commandes de message sont autorisées
+## 🆘 Support & Contribution
 
-### Summon System
-- Envoie un message de convocation au joueur
-- Freeze automatique
-- Détection de déconnexion
-- Ban permanent automatique si fuite
-- Message pour rejoindre Discord
+- 🐛 **Issues:** [GitHub Issues](https://github.com/EmyXtrm/plugin-mod-ration/issues)
+- 💬 **Support:** Contactez EmyXtrm sur Discord
+- 🌟 **Stars:** Si le plugin vous plaît, laissez une étoile !
 
-### Logging
-- Toutes les actions staff sont loggées en base de données
-- Notifications Discord pour chaque action importante
-- Historique complet des sanctions par joueur
+---
 
-## Support
+## 📋 Prérequis
 
-Pour tout problème ou suggestion, contactez EmyXtrm.
+- **Serveur:** Paper 1.21.4 (Spigot/Bukkit non supportés)
+- **Java:** Version 21
+- **Espace disque:** ~5 Mo pour le plugin + base SQLite
 
-## Licence
+---
 
-Plugin développé spécifiquement pour le serveur Cuboria.
+## 🔍 Fonctionnalités Détaillées
+
+### Système de Freeze
+Quand un joueur est freeze :
+- ❌ **Impossible de bouger** (téléporté si tentative)
+- ❌ **Impossible d'interagir** avec des blocs/items
+- ❌ **Impossible d'attaquer** d'autres joueurs
+- ✅ **Invulnérable** à tous les dégâts
+- ✅ **Peut parler** (/msg, /r, /reply autorisés)
+
+### Système de Convocation
+1. Staff ouvre `/sanction <joueur>`
+2. Clic sur le bouton **Convocation** (slot 26)
+3. Joueur freeze + reçoit le message de convocation
+4. Si le joueur se déconnecte = **Ban permanent automatique**
+5. Staff peut **unfreeze** en recliquant le bouton
+
+### Système de Rapports
+- Les joueurs peuvent `/report <joueur> <raison>`
+- **Cooldown de 60 secondes** par joueur
+- Staff reçoit une **notification instantanée**
+- Staff peut voir les rapports via l'item **📋 Rapports**
+- Clic sur un rapport = ouvre `/sanction` pour ce joueur
+- Shift+Clic = marquer comme traité
+
+---
+
+## 📄 Licence
+
+Ce plugin est développé pour le serveur Cuboria.
+Tous droits réservés © 2025 EmyXtrm
+
+---
+
+## 🙏 Remerciements
+
+Merci à la communauté Paper/Bukkit et au serveur Cuboria pour le support !
+
+---
+
+**🎉 Profitez d'un système de modération professionnel et facile à utiliser !**

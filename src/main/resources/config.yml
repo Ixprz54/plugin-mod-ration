@@ -1,15 +1,11 @@
 # Configuration du Plugin de Modération Cuboria
 # Développé par EmyXtrm
 
-# Configuration de la base de données
+# Configuration de la base de données (SQLite)
 database:
   enabled: true
-  host: "localhost"
-  port: 3306
-  database: "cuboria"
-  username: "root"
-  password: "password"
-  pool-size: 10
+  # La base de données SQLite sera créée automatiquement dans le dossier du plugin
+  # Fichier: plugins/CuboriaModerationPlugin/cuboria_moderation.db
 
 # Configuration Discord
 discord:

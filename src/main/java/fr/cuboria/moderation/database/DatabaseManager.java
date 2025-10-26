@@ -1,12 +1,11 @@
 package fr.cuboria.moderation.database;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import fr.cuboria.moderation.ModerationPlugin;
 import fr.cuboria.moderation.models.Report;
 import fr.cuboria.moderation.models.Sanction;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,108 +15,108 @@ import java.util.logging.Level;
 public class DatabaseManager {
 
     private final ModerationPlugin plugin;
-    private HikariDataSource dataSource;
+    private Connection connection;
+    private final File databaseFile;
 
     public DatabaseManager(ModerationPlugin plugin) {
         this.plugin = plugin;
+        this.databaseFile = new File(plugin.getDataFolder(), "cuboria_moderation.db");
     }
 
     public void initialize() {
-        setupConnectionPool();
-        createTables();
-    }
+        try {
+            // Créer le dossier du plugin si nécessaire
+            if (!plugin.getDataFolder().exists()) {
+                plugin.getDataFolder().mkdirs();
+            }
 
-    private void setupConnectionPool() {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mariadb://" +
-                plugin.getConfig().getString("database.host") + ":" +
-                plugin.getConfig().getInt("database.port") + "/" +
-                plugin.getConfig().getString("database.database"));
-        config.setUsername(plugin.getConfig().getString("database.username"));
-        config.setPassword(plugin.getConfig().getString("database.password"));
-        config.setMaximumPoolSize(plugin.getConfig().getInt("database.pool-size", 10));
+            // Charger le driver SQLite
+            Class.forName("org.sqlite.JDBC");
 
-        // Explicitly set the driver class name to use the relocated MariaDB driver
-        config.setDriverClassName("fr.cuboria.moderation.shaded.mariadb.jdbc.Driver");
+            // Établir la connexion
+            connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getAbsolutePath());
+            plugin.getLogger().info("Connexion SQLite établie avec succès: " + databaseFile.getName());
 
-        config.addDataSourceProperty("cachePrepStmts", "true");
-        config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        config.addDataSourceProperty("useServerPrepStmts", "true");
-        config.addDataSourceProperty("useLocalSessionState", "true");
-        config.addDataSourceProperty("rewriteBatchedStatements", "true");
-        config.addDataSourceProperty("cacheResultSetMetadata", "true");
-        config.addDataSourceProperty("cacheServerConfiguration", "true");
-        config.addDataSourceProperty("elideSetAutoCommits", "true");
-        config.addDataSourceProperty("maintainTimeStats", "false");
-
-        config.setConnectionTimeout(30000);
-        config.setIdleTimeout(600000);
-        config.setMaxLifetime(1800000);
-
-        dataSource = new HikariDataSource(config);
-        plugin.getLogger().info("Pool de connexions HikariCP initialisé avec succès");
+            // Créer les tables
+            createTables();
+        } catch (ClassNotFoundException | SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de l'initialisation de la base de données SQLite", e);
+        }
     }
 
     private void createTables() {
         String sanctionsTable = "CREATE TABLE IF NOT EXISTS cuboria_sanctions (" +
-                "id INT AUTO_INCREMENT PRIMARY KEY," +
-                "target_uuid VARCHAR(36) NOT NULL," +
-                "target_name VARCHAR(16) NOT NULL," +
-                "staff_uuid VARCHAR(36) NOT NULL," +
-                "staff_name VARCHAR(16) NOT NULL," +
-                "type VARCHAR(16) NOT NULL," +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "target_uuid TEXT NOT NULL," +
+                "target_name TEXT NOT NULL," +
+                "staff_uuid TEXT NOT NULL," +
+                "staff_name TEXT NOT NULL," +
+                "type TEXT NOT NULL," +
                 "reason TEXT NOT NULL," +
-                "duration BIGINT NOT NULL," +
-                "timestamp BIGINT NOT NULL," +
-                "active BOOLEAN DEFAULT TRUE," +
-                "INDEX idx_target_uuid (target_uuid)," +
-                "INDEX idx_staff_uuid (staff_uuid)," +
-                "INDEX idx_timestamp (timestamp)" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+                "duration INTEGER NOT NULL," +
+                "timestamp INTEGER NOT NULL," +
+                "active INTEGER DEFAULT 1" +
+                ");";
 
         String reportsTable = "CREATE TABLE IF NOT EXISTS cuboria_reports (" +
-                "id INT AUTO_INCREMENT PRIMARY KEY," +
-                "reporter_uuid VARCHAR(36) NOT NULL," +
-                "reporter_name VARCHAR(16) NOT NULL," +
-                "target_uuid VARCHAR(36) NOT NULL," +
-                "target_name VARCHAR(16) NOT NULL," +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "reporter_uuid TEXT NOT NULL," +
+                "reporter_name TEXT NOT NULL," +
+                "target_uuid TEXT NOT NULL," +
+                "target_name TEXT NOT NULL," +
                 "reason TEXT NOT NULL," +
-                "timestamp BIGINT NOT NULL," +
-                "handled BOOLEAN DEFAULT FALSE," +
-                "handled_by_uuid VARCHAR(36)," +
-                "handled_by_name VARCHAR(16)," +
-                "INDEX idx_target_uuid (target_uuid)," +
-                "INDEX idx_handled (handled)," +
-                "INDEX idx_timestamp (timestamp)" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+                "timestamp INTEGER NOT NULL," +
+                "handled INTEGER DEFAULT 0," +
+                "handled_by_uuid TEXT," +
+                "handled_by_name TEXT" +
+                ");";
 
         String staffInventoriesTable = "CREATE TABLE IF NOT EXISTS cuboria_staff_inventories (" +
-                "uuid VARCHAR(36) PRIMARY KEY," +
-                "inventory MEDIUMBLOB NOT NULL," +
+                "uuid TEXT PRIMARY KEY," +
+                "inventory BLOB NOT NULL," +
                 "armor BLOB," +
-                "timestamp BIGINT NOT NULL" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+                "timestamp INTEGER NOT NULL" +
+                ");";
 
-        try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement()) {
+        // Créer les index pour améliorer les performances
+        String indexSanctionsTarget = "CREATE INDEX IF NOT EXISTS idx_sanctions_target ON cuboria_sanctions(target_uuid);";
+        String indexSanctionsStaff = "CREATE INDEX IF NOT EXISTS idx_sanctions_staff ON cuboria_sanctions(staff_uuid);";
+        String indexSanctionsTimestamp = "CREATE INDEX IF NOT EXISTS idx_sanctions_timestamp ON cuboria_sanctions(timestamp);";
+        String indexReportsTarget = "CREATE INDEX IF NOT EXISTS idx_reports_target ON cuboria_reports(target_uuid);";
+        String indexReportsHandled = "CREATE INDEX IF NOT EXISTS idx_reports_handled ON cuboria_reports(handled);";
+        String indexReportsTimestamp = "CREATE INDEX IF NOT EXISTS idx_reports_timestamp ON cuboria_reports(timestamp);";
+
+        try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate(sanctionsTable);
             stmt.executeUpdate(reportsTable);
             stmt.executeUpdate(staffInventoriesTable);
-            plugin.getLogger().info("Tables de la base de données créées avec succès");
+            stmt.executeUpdate(indexSanctionsTarget);
+            stmt.executeUpdate(indexSanctionsStaff);
+            stmt.executeUpdate(indexSanctionsTimestamp);
+            stmt.executeUpdate(indexReportsTarget);
+            stmt.executeUpdate(indexReportsHandled);
+            stmt.executeUpdate(indexReportsTimestamp);
+            plugin.getLogger().info("Tables SQLite créées avec succès");
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création des tables", e);
         }
     }
 
     public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+        if (connection == null || connection.isClosed()) {
+            connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getAbsolutePath());
+        }
+        return connection;
     }
 
     public void close() {
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
-            plugin.getLogger().info("Connexion à la base de données fermée");
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+                plugin.getLogger().info("Connexion SQLite fermée");
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la fermeture de la connexion", e);
         }
     }
 
@@ -127,8 +126,7 @@ public class DatabaseManager {
         String query = "INSERT INTO cuboria_sanctions (target_uuid, target_name, staff_uuid, staff_name, type, reason, duration, timestamp, active) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, sanction.getTargetUuid().toString());
             stmt.setString(2, sanction.getTargetName());
             stmt.setString(3, sanction.getStaffUuid().toString());
@@ -137,7 +135,7 @@ public class DatabaseManager {
             stmt.setString(6, sanction.getReason());
             stmt.setLong(7, sanction.getDuration());
             stmt.setLong(8, sanction.getTimestamp());
-            stmt.setBoolean(9, sanction.isActive());
+            stmt.setInt(9, sanction.isActive() ? 1 : 0);
 
             stmt.executeUpdate();
 
@@ -154,8 +152,7 @@ public class DatabaseManager {
         List<Sanction> sanctions = new ArrayList<>();
         String query = "SELECT * FROM cuboria_sanctions WHERE target_uuid = ? ORDER BY timestamp DESC";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query)) {
             stmt.setString(1, playerUuid.toString());
 
             ResultSet rs = stmt.executeQuery();
@@ -170,10 +167,9 @@ public class DatabaseManager {
     }
 
     public Sanction getActiveBan(UUID playerUuid) {
-        String query = "SELECT * FROM cuboria_sanctions WHERE target_uuid = ? AND type = 'BAN' AND active = TRUE ORDER BY timestamp DESC LIMIT 1";
+        String query = "SELECT * FROM cuboria_sanctions WHERE target_uuid = ? AND type = 'BAN' AND active = 1 ORDER BY timestamp DESC LIMIT 1";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query)) {
             stmt.setString(1, playerUuid.toString());
 
             ResultSet rs = stmt.executeQuery();
@@ -195,10 +191,9 @@ public class DatabaseManager {
     }
 
     public Sanction getActiveMute(UUID playerUuid) {
-        String query = "SELECT * FROM cuboria_sanctions WHERE target_uuid = ? AND type = 'MUTE' AND active = TRUE ORDER BY timestamp DESC LIMIT 1";
+        String query = "SELECT * FROM cuboria_sanctions WHERE target_uuid = ? AND type = 'MUTE' AND active = 1 ORDER BY timestamp DESC LIMIT 1";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query)) {
             stmt.setString(1, playerUuid.toString());
 
             ResultSet rs = stmt.executeQuery();
@@ -222,9 +217,8 @@ public class DatabaseManager {
     public void updateSanction(Sanction sanction) {
         String query = "UPDATE cuboria_sanctions SET active = ? WHERE id = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setBoolean(1, sanction.isActive());
+        try (PreparedStatement stmt = getConnection().prepareStatement(query)) {
+            stmt.setInt(1, sanction.isActive() ? 1 : 0);
             stmt.setInt(2, sanction.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -243,7 +237,7 @@ public class DatabaseManager {
                 rs.getString("reason"),
                 rs.getLong("duration"),
                 rs.getLong("timestamp"),
-                rs.getBoolean("active")
+                rs.getInt("active") == 1
         );
     }
 
@@ -253,15 +247,14 @@ public class DatabaseManager {
         String query = "INSERT INTO cuboria_reports (reporter_uuid, reporter_name, target_uuid, target_name, reason, timestamp, handled) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, report.getReporterUuid().toString());
             stmt.setString(2, report.getReporterName());
             stmt.setString(3, report.getTargetUuid().toString());
             stmt.setString(4, report.getTargetName());
             stmt.setString(5, report.getReason());
             stmt.setLong(6, report.getTimestamp());
-            stmt.setBoolean(7, report.isHandled());
+            stmt.setInt(7, report.isHandled() ? 1 : 0);
 
             stmt.executeUpdate();
 
@@ -276,10 +269,9 @@ public class DatabaseManager {
 
     public List<Report> getPendingReports() {
         List<Report> reports = new ArrayList<>();
-        String query = "SELECT * FROM cuboria_reports WHERE handled = FALSE ORDER BY timestamp DESC LIMIT 50";
+        String query = "SELECT * FROM cuboria_reports WHERE handled = 0 ORDER BY timestamp DESC LIMIT 50";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
+        try (PreparedStatement stmt = getConnection().prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
@@ -293,10 +285,9 @@ public class DatabaseManager {
     }
 
     public void markReportAsHandled(Report report, UUID handlerUuid, String handlerName) {
-        String query = "UPDATE cuboria_reports SET handled = TRUE, handled_by_uuid = ?, handled_by_name = ? WHERE id = ?";
+        String query = "UPDATE cuboria_reports SET handled = 1, handled_by_uuid = ?, handled_by_name = ? WHERE id = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query)) {
             stmt.setString(1, handlerUuid.toString());
             stmt.setString(2, handlerName);
             stmt.setInt(3, report.getId());
@@ -319,7 +310,7 @@ public class DatabaseManager {
                 rs.getString("target_name"),
                 rs.getString("reason"),
                 rs.getLong("timestamp"),
-                rs.getBoolean("handled"),
+                rs.getInt("handled") == 1,
                 rs.getString("handled_by_uuid") != null ? UUID.fromString(rs.getString("handled_by_uuid")) : null,
                 rs.getString("handled_by_name")
         );
@@ -328,10 +319,9 @@ public class DatabaseManager {
     // ==================== STAFF INVENTORIES ====================
 
     public void saveStaffInventory(UUID playerUuid, ItemStack[] inventory, ItemStack[] armor) {
-        String query = "REPLACE INTO cuboria_staff_inventories (uuid, inventory, armor, timestamp) VALUES (?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO cuboria_staff_inventories (uuid, inventory, armor, timestamp) VALUES (?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query)) {
             stmt.setString(1, playerUuid.toString());
             stmt.setBytes(2, InventorySerializer.serializeItemStacks(inventory));
             stmt.setBytes(3, InventorySerializer.serializeItemStacks(armor));
@@ -346,8 +336,7 @@ public class DatabaseManager {
     public ItemStack[][] loadStaffInventory(UUID playerUuid) {
         String query = "SELECT inventory, armor FROM cuboria_staff_inventories WHERE uuid = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query)) {
             stmt.setString(1, playerUuid.toString());
 
             ResultSet rs = stmt.executeQuery();
@@ -366,8 +355,7 @@ public class DatabaseManager {
     public void deleteStaffInventory(UUID playerUuid) {
         String query = "DELETE FROM cuboria_staff_inventories WHERE uuid = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = getConnection().prepareStatement(query)) {
             stmt.setString(1, playerUuid.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
